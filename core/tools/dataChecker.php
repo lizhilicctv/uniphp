@@ -23,8 +23,8 @@ class dataChecker{
 					if(!$res){$this->error = $ruleNew[2]; return false;}
 				}
 			}else{
-				$methodName = 'check'.ucfirst($rule[0]);
-				if(!method_exists($this, $methodName)){pgExit('数据检查规则配置错误');}
+				$methodName = 'check'.ucfirst($rule[0]);//拼接规则名称,并大写字母
+				if(!method_exists($this, $methodName)){die('检查规则不存在!');} //判读是否有类方法
 				$res = $this->$methodName($this->data[$k], $rule[1]);
 				if(!$res){$this->error = $rule[2]; return false;}
 			}
@@ -113,21 +113,26 @@ class dataChecker{
 	
 	//邮箱
 	public function checkEmail($checkData, $checkRule){
+		if(!$checkData){return true;}
 		return preg_match('/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/', $checkData);
 	}
 	
 	//手机号
 	public function checkPhone($checkData, $checkRule){
+		if(!$checkData){return true;}
 		return preg_match('/^13[0-9]{9}$|14[0-9]{9}$|15[0-9]{9}$|18[0-9]{9}$|17[0-9]{9}$/', $checkData);
 	}
 	
 	//url
 	public function checkUrl($checkData, $checkRule){
-		return preg_match('/^(\w+:\/\/)?\w+(\.\w+)+.*$/', $checkData);
+		if(!$checkData){return true;}
+		//return preg_match('/^(\w+:\/\/)?\w+(\.\w+)+.*$/', $checkData);
+		return preg_match('/^((ht|f)tps?):\/\/[\w\-]+(\.[\w\-]+)+([\w\-.,@?^=%&:\/~+#]*[\w\-@?^=%&\/~+#])?$/', $checkData);
 	}
 	
 	//邮编
 	public function checkZipcode($checkData, $checkRule){
+		if(!$checkData){return true;}
 		return preg_match('/^[0-9]{6}$/', $checkData);
 	}
 	
@@ -135,4 +140,11 @@ class dataChecker{
 	public function checkReg($checkData, $checkRule){
 		return preg_match('/^'.$checkRule.'$/', $checkData);
 	}
+	
+	//必须填写
+	public function checkMust($checkData, $checkRule){
+		if(!$checkData){return false;}
+		return true;
+	}
+	
 }

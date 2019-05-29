@@ -37,11 +37,19 @@
             <span class="red">请您注意：</span>页面将在 <b id="wait"><?php echo($wait);?></b>秒内自动跳转<br>
             <a id="href" href="<?php
 				if($code==1){
-					$url=$url ?? $_SERVER["HTTP_REFERER"];
-					echo($url);
+					if($url==2){
+						echo('javascript:parent.location.reload()');
+					}else{
+						$url=$url ?? $_SERVER["HTTP_REFERER"];
+						echo($url);
+					}
 				}else if($code==0){
-					$url=$url ?? 'javascript:history.back(-1);';
-					echo($url);
+					if($url==2){
+						echo('javascript:parent.location.reload()');
+					}else{
+						$url=$url ?? 'javascript:history.back(-1);';
+						echo($url);
+					}
 				}
 			?>">直接跳转</a>
         </p>

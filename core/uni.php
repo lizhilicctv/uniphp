@@ -9,12 +9,12 @@ define('UNI_CONTROLLER'  , 'controllers');
 define('UNI_VIEW'        , 'views');
 define('UNI_MODEL'       , UNI_IN.'models');
 define('UNI_TOOLS'       , 'tools');
-function dump($var = null) {var_dump($var);}
+function dump($var = null) {echo "<pre>";var_dump($var);echo "</pre>";}
 if(is_file(UNI_IN.'config'.UNI_DS.'app.php')){define('APP_CONFIG', include "config/app.php");}else{throw new Exception("配置文件app.php,不存在");}
 if(is_file(UNI_IN.'tools'.UNI_DS.'page.php')){include "tools/page.php";}else{throw new Exception("page类,不存在");}
 if(is_file(UNI_IN.'tools'.UNI_DS.'db.php')){include "tools/db.php";}else{throw new Exception("db类,不存在");}
 if(is_file(UNI_IN.'tools'.UNI_DS.'dataChecker.php')){include "tools/dataChecker.php";}else{throw new Exception("验证类,不存在");}
-//模型,这里没有编写呐
+//模型
 function model($modelName){
 	$modelName = 'uni\\model\\'.$modelName;
 	$model = new $modelName();
@@ -26,16 +26,15 @@ function __uniAutoLoad($className){
 	if(UNI_DS == '/'){$fileUri = str_replace('\\', '/', $fileUri);}
 	if(is_file($fileUri)){require $fileUri;}
 	//引入model
-	$filemodel=UNI_IN.substr($className, 4).'.php';
+	$filemodel=UNI_IN.'model/'.substr($className,10).'.php';
 	if(UNI_DS == '/'){$filemodel = str_replace('\\', '/', $filemodel);}
 	if(is_file($filemodel)){require $filemodel;}
-	
 }
 spl_autoload_register('__uniAutoLoad');
 class uni{
 	public    $gets;
 	public function __construct(){
-		if(is_file(UNI_PATH.UNI_DS.'base.php')){include UNI_PATH.UNI_DS.'base.php';}else{throw new Exception("核心文件base.php,不存在");}
+		if(is_file(UNI_PATH.UNI_DS.'base.php')){include UNI_PATH.UNI_DS.'base.php';}
 	}
 	public function __init(){
 		//过滤POST
@@ -51,15 +50,15 @@ class uni{
 	}
 	public function index(){}
 	public function display($tplName = null){	
-		$tplUrl = is_null($tplName) ? UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'_'.UNI_M.'.php' : UNI_PATH.'/'.UNI_VIEW.'/'.$tplName;
-		if(is_file($tplUrl)){include($tplUrl);}
+		$tplUrl = is_null($tplName) ? UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.UNI_M.'.php' : UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.$tplName;
+		if(is_file($tplUrl)){include($tplUrl);}else{die("视图模版不存在");}
 	}
-	public function success($msg='',$url='',$wait=5,$code=1){	
+	public function success($msg='',$url='',$wait=3,$code=1){	
 		$this->gets=['msg'=>$msg,'url'=>$url,'wait'=>$wait,'code'=>$code];
 		$tplUrl =  UNI_IN.'/template/dispatch_jump.php';
 		if(is_file($tplUrl)){include($tplUrl);}
 	}
-	public function error($msg='',$url='',$wait=5,$code=0){	
+	public function error($msg='',$url='',$wait=3,$code=0){	
 		$this->gets=['msg'=>$msg,'url'=>$url,'wait'=>$wait,'code'=>$code];
 		$tplUrl =  UNI_IN.'/template/dispatch_jump.php';
 		if(is_file($tplUrl)){include($tplUrl);}
@@ -68,17 +67,29 @@ class uni{
 //下面是自定义函数
 //去除空白字符
 function trimAll($str){$qian=array(" ","　","\t","\n","\r");$hou=array("","","","",""); return str_replace($qian,$hou,$str); }
-function json($data){exit(json_encode($data));}
+function json($data){header('Content-type: application/json');exit(json_encode($data));}
 function jump($jump=null){if(!$jump){header('location:'.UNI_SROOT);}else{header('location:'.$jump);} exit;}
-//成功跳转
-function success($jump=null){
-		if(!$jump){
-			header('location:'.UNI_SROOT);
-		}else{
-			header('location:'.$jump);
-		} 
-	exit;
+//缓存方法
+function cache($name,$data='uni_lizhili_123',$time=3600){ //默认过期时间为一个小时
+	if(is_file(UNI_IN.'config'.UNI_DS.'cache.php')){$cache=include(UNI_IN.'config'.UNI_DS.'cache.php');}else{die('cache配置不存在!');}
+	if(!$cache['start']){die('cache 没有开启');}
+	if(is_file(UNI_IN.'cache'.UNI_DS.$cache['type'].'Cacher.php')){require_once UNI_IN.'cache'.UNI_DS.$cache['type'].'Cacher.php';}else{die($cache['type'].'缓存类文件不存在!');}
+	$className = 'uni\\cache\\'.$cache['type'].'Cacher';
+	$cacher   = $className::getInstance($cache);
+	if($name=='rm_all'){//这里是进行清除全部操作
+		return	$cacher->clearCache();
+	}else{
+		if($data == 'uni_lizhili_123'){ //这个是要读取缓存
+			return	$cacher->get($name);
+		}elseif($data==null){ //这个是要删除指定缓存
+			return $cacher->removeCache($name);
+		}else{ //这个是要设置缓存
+			return	$cacher->set($name,$data,$time);
+		}
+	}
 }
+//成功跳转
+function success($jump=null){if(!$jump){header('location:'.UNI_SROOT);}else{header('location:'.$jump);} exit;}
 //开启session
 function startSession(){
 	switch(APP_CONFIG['session']['type']){
@@ -130,7 +141,7 @@ function u($c, $m, $params = '', $page = null){
 	$suffix = APP_CONFIG['suffix'] ? APP_CONFIG['suffix'] : '/';
 	$page = $page != null ? '/page_'.$page : '';
 	if(is_array($params)){
-		return UNI_SROOT.$c.'/'.$m.'/'.implode('/', $params).$page.$suffix;
+		return UNI_SROOT.'/'.$c.'/'.$m.'/'.implode('/', $params).$page.$suffix;
 	}else{
 		if($params != ''){
 			return UNI_SROOT.'/'.$c.'/'.$m.'/'.$params.$page.$suffix;
@@ -141,7 +152,6 @@ function u($c, $m, $params = '', $page = null){
 }
 //router //把路径分解为数组
 function UNI_Router(){
-	//dump($_SERVER);
 	if(isset($_SERVER["REQUEST_URI"])){
 		$path = $_SERVER["REQUEST_URI"];
 		unset($_SERVER["REQUEST_URI"]);
@@ -195,7 +205,10 @@ try{
 	header('content-type:text/html; charset=utf-8');//设置编码
 	if(APP_CONFIG['session']['start']){startSession(APP_CONFIG);}
 	$router = UNI_Router(APP_CONFIG);//执行路由,获取真实路径
-	$controllerName = $router[0];//获取控制器
+	if(substr($router[0],-4)=='.php'){
+		array_splice($router, 0, 1);
+	}
+	$controllerName = $router[0] ?? 'index';//获取控制器
 	$mode = '/^([a-z]|[A-Z]|[0-9])+$/Uis';
 	$res  = preg_match($mode, $controllerName); //匹配(控制器，只能是字母和数字)
 	if(!$res){$controllerName = 'index';} //如果是错误的,就让他控制器为index
@@ -208,24 +221,24 @@ try{
 	define('UNI_C', $controllerName);
 	$controllerName = $controllerName.'Controller';
 	$controller = new $controllerName; //实例化类
+	
 	if(!$controller instanceof uni){throw new Exception('必须继承uni');} //判断有没有继承类
-	$methodName = $router[1];//获取方法
+	$methodName = $router[1]?? 'index';//获取方法
 	$res  = preg_match($mode, $methodName);//方法必须为字母和数字
 	if(!$res){$methodName = 'index';}
 	$graceMethods = array('__init', 'display', 'json','u', 'jump');
 	if(in_array($methodName, $graceMethods)){$methodName  = 'index';}
 	if(!method_exists($controller, $methodName)){$methodName  = 'index';} //检查方法是否存在类中
 	define('UNI_M', $methodName);
-	define('UNI_SROOT', str_replace(UNI_INDEX, '', $_SERVER['PHP_SELF'])); //解析路径,删除index.html
+	//define('UNI_SROOT', str_replace(UNI_INDEX, '', $_SERVER['PHP_SELF'])); //解析路径,删除index.html
+	if(substr(explode('/',$_SERVER['PHP_SELF'])[1],-4)=='.php' and explode('/',$_SERVER['PHP_SELF'])[1] != 'index.php'){define('UNI_SROOT', '/'.explode('/',$_SERVER['PHP_SELF'])[1]);}else{define('UNI_SROOT', '');}
 	array_shift($router); //删除第一个元素
 	array_shift($router);
 	$controller->gets = $router; //获取参数
 	define('UNI_GETS', $controller->gets);//参数转成数值
 	define('UNI_URL', implode('/', $router));//参数转成数值
-	//dump(UNI_PATH.UNI_DS.'base.php');
-	//if(is_file(UNI_PATH.UNI_DS.'base.php')){include UNI_PATH.UNI_DS.'base.php';}else{throw new Exception("核心文件base.php,不存在");}
-	
+	if(is_file(UNI_IN.UNI_DS.'common.php')){include(UNI_IN.UNI_DS.'common.php');} //执行自定义函数
 	call_user_func(array($controller, '__init'));//执行控制下面的 init方法
 	call_user_func(array($controller, $methodName));//执行方法
-	if(APP_CONFIG['debug']){UNIRunLog();}//执行
+	//if(APP_CONFIG['debug']){UNIRunLog();}//执行
 }catch(UNIException $e){$e->showBug();}

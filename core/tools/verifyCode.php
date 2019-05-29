@@ -11,18 +11,18 @@ class verifyCode{
     private $securityCode;                         //验证码内容
     public  $fontFamily      = null;               //字体文件路径
     public  $noise           = true;               //绘制干扰
-    public  $sessionName     = 'pgVcode';          //验证码在Session中储存的名称
+    public  $sessionName     = 'UNIVcode';          //验证码在Session中储存的名称
     private $img             = null;               //绘图资源
     public  $noiseNumber     = 6;
     
 	public function __construct($width = 88, $height = 30, $totalChars = 4, $numbers = 1, $fontFamily = 'AMBROSIA.ttf'){
-		$this->fontFamily    = PG_IN.'fonts'.PG_DS.$fontFamily;
+		$this->fontFamily    = UNI_IN.'fonts'.UNI_DS.$fontFamily;
         $this->width         = $width;
         $this->height        = $height;
         $this->totalChars    = $totalChars;
         $this->numbers       = $numbers;
-        if($this->fontFamily == null) throw new \pgException('验证码字体设置错误');
-		if(!is_file($this->fontFamily)) throw new \pgException('验证码字体文件不存在');
+        if($this->fontFamily == null) throw new \Exception('验证码字体设置错误');
+		if(!is_file($this->fontFamily)) throw new \Exception('验证码字体文件不存在');
     }
     
 	private function setChars() {
@@ -60,3 +60,5 @@ class verifyCode{
         }
     }
 }
+
+

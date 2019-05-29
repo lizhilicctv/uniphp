@@ -1,4 +1,5 @@
 <?php
-// $li=UNI\tools\Db::name('new')->getall();
-// dump($li);
+use UNI\tools\Db;
+
+
 
