@@ -14,4 +14,3 @@ function tonow($data){
     $secs = $data%60;
 	return $days.'天'.$hours.'小时'.$mins.'分钟'.$secs.'秒';
 }
-

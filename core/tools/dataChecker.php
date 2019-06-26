@@ -34,7 +34,14 @@ class dataChecker{
 	
 	//字符串及长度检查
 	public function checkString($checkData, $checkRule){
-		return preg_match('/^.{'.$checkRule.'}$/Uis', trim($checkData));
+		$num=mb_strlen(trim($checkData),'UTF8');
+		$checkRule= explode(",",$checkRule);
+		if($num >=$checkRule[0] and $num <=$checkRule[1]){
+			return true;
+		}else{
+			return false;
+		}
+		//return preg_match('/^.{'.$checkRule.'}$/Uis', trim($checkData));
 	}
 	
 	//整数检查

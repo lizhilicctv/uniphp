@@ -1,4 +1,6 @@
 <?php
+//缓存我已经改了和tp一样了基本用法是
+//cache('kk',$data)  cache('kk')  cache('kk',null)  cache('rm_all');
 namespace uni\cache;
 class fileCacher{
 	private static $cacher = null;

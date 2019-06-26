@@ -111,6 +111,7 @@ class Db{
 	//Db::name('test')->where('id > ?',6)->get();
 	//Db::name('test')->where('id = ?',6)->get('id,name');
 	public function get($fields = null){ 
+		if($fields){$fields=$this->setfields($fields);}
 		$preArray            = $this->prepare($fields);
 		$this->sql           = $preArray[0];
 		$this->pretreatment  = $this->pdo->prepare($this->sql);
@@ -123,12 +124,15 @@ class Db{
 	public function value($fields = null){ 
 		if(strpos($fields,',')) $this->outputError("只能查询一个字段");
 		$this->checkFields("$this->prefix$this->table", $fields);
+		if($fields){$fields=$this->setfields($fields);}
 		$preArray            = $this->prepare($fields);
 		$this->sql           = $preArray[0];
+		
 		$this->pretreatment  = $this->pdo->prepare($this->sql);
 		$this->pretreatment->execute($preArray[1]);
 		self::$_instance = null;
 		$res=$this->pretreatment->fetch(\PDO::FETCH_ASSOC);
+		$fields=trim($fields,'`');//去掉 tab 上面的符号
 		return $res[$fields];
 	}
 	
@@ -142,6 +146,7 @@ class Db{
 		return $this;
 	}
 	public function fields($fields = null){
+		if($fields){$fields=$this->setfields($fields);}
 		$preArray    = $this->prepare($fields, false);		
 		$this->sql   = $preArray[0];
 		if(empty($this->totalRows)){
@@ -209,6 +214,7 @@ class Db{
 	// ->order('a.id desc')->getall();
 	public function getAll($fields = null){
 		//$this->checkFields("$this->prefix$this->table", $fields); 多表就不能检查了
+		if($fields){$fields=$this->setfields($fields);}
 		$preArray    = $this->prepare($fields, false);		
 		$this->sql   = $preArray[0];
 		if($this->Page > 0){
@@ -220,6 +226,7 @@ class Db{
 		}
 		$this->pretreatment  = $this->pdo->prepare($this->sql);
 		$this->pretreatment->execute($preArray[1]);
+		self::$_instance = null;
 		return $this->pretreatment->fetchAll(\PDO::FETCH_ASSOC);
 	}
 	//查询多少条 这个是聚合函数,统计使用
@@ -360,6 +367,16 @@ class Db{
             $this->outputError($arrayError[2]);
         }
     }
+	//这个是为了把字段添加上`` tab 上面的符号
+	public function setfields($data){
+		$data=explode(",", $data);
+		$data=array_filter($data);
+		$res='';
+		foreach($data as $k=>$v){
+			$res.='`'.$v.'`,';
+		}
+		return substr($res, 0, -1);
+	}
 	//自己定义抛出错误//这里需要更多定义
 	public function outputError($messages){
 		die('错误信息为:'.$messages);

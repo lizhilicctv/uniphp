@@ -9,7 +9,8 @@ return [
 	],
 	'suffix'=>'.html', //默认后缀
 	'router'=>false, //是否开启路由
-	'__manage__'=>'/static/manage/'
+	'__manage__'=>'/static/manage/',
+	'__index__'=>'/static/index/'
 ];
 
 

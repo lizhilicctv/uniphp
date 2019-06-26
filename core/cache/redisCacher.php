@@ -1,9 +1,7 @@
 <?php
-/** 这个没有编写呢,
- * phpGrace 缓存类 [memcache]
- * 作者 : 刘海君 5213606@qq.com
- */
-namespace phpGrace\caches;
+//缓存我已经改了和tp一样了基本用法是
+//cache('kk',$data)  cache('kk')  cache('kk',null)  cache('rm_all');
+namespace uni\cache;
 class redisCacher{
 	private static $cacher = null;
 	private $rdCacher;

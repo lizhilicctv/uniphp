@@ -49,9 +49,15 @@ class uni{
 		if(!empty($this->gets)){$this->gets = str_replace(array('<','>', '"', "'"),array('&lt;','&gt;', '&quot;',''), $this->gets);}
 	}
 	public function index(){}
-	public function display($tplName = null){	
-		$tplUrl = is_null($tplName) ? UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.UNI_M.'.php' : UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.$tplName;
-		if(is_file($tplUrl)){include($tplUrl);}else{die("视图模版不存在");}
+	public function display($tplName = null,$type=false){	
+		if($type){
+			$tplUrl = UNI_PATH.'/'.UNI_VIEW.'/'.$tplName;
+			if(is_file($tplUrl)){include($tplUrl);}else{die("视图模版不存在");}
+		}else{
+			$tplUrl = is_null($tplName) ? UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.UNI_M.'.php' : UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.$tplName;
+			if(is_file($tplUrl)){include($tplUrl);}else{die("视图模版不存在");}
+		}
+		die;
 	}
 	public function success($msg='',$url='',$wait=3,$code=1){	
 		$this->gets=['msg'=>$msg,'url'=>$url,'wait'=>$wait,'code'=>$code];
@@ -221,20 +227,20 @@ try{
 	define('UNI_C', $controllerName);
 	$controllerName = $controllerName.'Controller';
 	$controller = new $controllerName; //实例化类
-	
 	if(!$controller instanceof uni){throw new Exception('必须继承uni');} //判断有没有继承类
 	$methodName = $router[1]?? 'index';//获取方法
 	$res  = preg_match($mode, $methodName);//方法必须为字母和数字
 	if(!$res){$methodName = 'index';}
 	$graceMethods = array('__init', 'display', 'json','u', 'jump');
 	if(in_array($methodName, $graceMethods)){$methodName  = 'index';}
-	if(!method_exists($controller, $methodName)){$methodName  = 'index';} //检查方法是否存在类中
+	if(!method_exists($controller, $methodName)){$fang= $methodName;$methodName  = 'index';} //检查方法是否存在类中
 	define('UNI_M', $methodName);
 	//define('UNI_SROOT', str_replace(UNI_INDEX, '', $_SERVER['PHP_SELF'])); //解析路径,删除index.html
 	if(substr(explode('/',$_SERVER['PHP_SELF'])[1],-4)=='.php' and explode('/',$_SERVER['PHP_SELF'])[1] != 'index.php'){define('UNI_SROOT', '/'.explode('/',$_SERVER['PHP_SELF'])[1]);}else{define('UNI_SROOT', '');}
 	array_shift($router); //删除第一个元素
 	array_shift($router);
 	$controller->gets = $router; //获取参数
+	if(isset($fang)){array_push($controller->gets,$fang);} //追加数组,这里方法是,url第二位不是方法的时候操作
 	define('UNI_GETS', $controller->gets);//参数转成数值
 	define('UNI_URL', implode('/', $router));//参数转成数值
 	if(is_file(UNI_IN.UNI_DS.'common.php')){include(UNI_IN.UNI_DS.'common.php');} //执行自定义函数
