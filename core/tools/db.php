@@ -373,7 +373,11 @@ class Db{
 		$data=array_filter($data);
 		$res='';
 		foreach($data as $k=>$v){
-			$res.='`'.$v.'`,';
+			if(!strpos($v,'.')){
+				$res.='`'.$v.'`,';
+			}else{
+				$res.=$v.',';
+			}
 		}
 		return substr($res, 0, -1);
 	}
