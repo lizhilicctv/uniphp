@@ -5,6 +5,7 @@ define('UNI_INDEX' 			, 'index.php'); //默认首页
 define('UNI_V'     			,  '0.1');
 define('UNI_DS'              ,  DIRECTORY_SEPARATOR);//分隔符
 define('UNI_IN'              ,  dirname(__FILE__).UNI_DS);//当前文件的绝对路径。__FILE__魔术常量，包含文件名称
+define('UNI_ROOT'             ,  dirname(dirname(__FILE__)));//项目根目录
 define('UNI_CONTROLLER'  , 'controllers');
 define('UNI_VIEW'        , 'views');
 define('UNI_MODEL'       , UNI_IN.'models');
@@ -22,6 +23,7 @@ function model($modelName){
 }
 //自动加载
 function __uniAutoLoad($className){
+    dump($className);
 	$fileUri = UNI_IN.'tools/'.substr($className, 10).'.php';
 	if(UNI_DS == '/'){$fileUri = str_replace('\\', '/', $fileUri);}
 	if(is_file($fileUri)){require $fileUri;}
@@ -49,16 +51,18 @@ class uni{
 		if(!empty($this->gets)){$this->gets = str_replace(array('<','>', '"', "'"),array('&lt;','&gt;', '&quot;',''), $this->gets);}
 	}
 	public function index(){}
-	public function display($tplName = null,$type=false){	
-		if($type){
-			$tplUrl = UNI_PATH.'/'.UNI_VIEW.'/'.$tplName;
-			if(is_file($tplUrl)){include($tplUrl);}else{die("视图模版不存在");}
-		}else{
-			$tplUrl = is_null($tplName) ? UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.UNI_M.'.php' : UNI_PATH.'/'.UNI_VIEW.'/'.UNI_C.'/'.$tplName;
-			if(is_file($tplUrl)){include($tplUrl);}else{die("视图模版不存在");}
-		}
+	public function display($tplName = null,$type=[]){
+        if(!$tplName)  $tplName=UNI_C.'/'.UNI_M;
+        $tplUrl = UNI_PATH.'/'.UNI_VIEW.'/'.$tplName.'.html';
+        if(!is_file($tplUrl)){die("视图模版({$tplName})不存在,");}
+        require_once UNI_ROOT.'\vendor\autoload.php'; //加载类方法
+        $template = new think\Template(include "config/template.php");
+        $template->assign($type);
+        $template->fetch($tplName);
 		die;
 	}
+
+
 	public function success($msg='',$url='',$wait=3,$code=1){	
 		$this->gets=['msg'=>$msg,'url'=>$url,'wait'=>$wait,'code'=>$code];
 		$tplUrl =  UNI_IN.'/template/dispatch_jump.php';

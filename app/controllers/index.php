@@ -5,7 +5,6 @@ class indexController extends uni{
 		parent::__init();
 	}
 	public function index(){
-		dump('成功了!');
+     $this->display('index',['name' => 'UNI 框架']);
 	}
-
 }
